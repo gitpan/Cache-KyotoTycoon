@@ -23,14 +23,12 @@ no_index:
     - t
     - xt
 requires:
-  Class::Accessor::Fast: 0
-  Exporter: 5.63
+  Exporter: 0
   MIME::Base64: 0
   MIME::QuotedPrint: 0
   URI::Escape: 0
   WWW::Curl::Easy: 0
-  parent: 0
   perl: 5.8.0
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.05
+version: 0.06
