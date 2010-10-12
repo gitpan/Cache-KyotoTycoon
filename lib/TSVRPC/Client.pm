@@ -5,7 +5,7 @@ use 5.008001;
 our $VERSION = '0.01';
 use TSVRPC::Parser;
 use TSVRPC::Util;
-use TSVRPC::Response;
+
 use WWW::Curl::Easy;
 
 sub new {
@@ -48,11 +48,19 @@ sub call {
     open(my $fh, ">", \$response_content) or die "cannot open buffer";
     $curl->setopt(CURLOPT_WRITEDATA, $fh);
     my $content_type;
+    my $status_line;
     $curl->setopt( CURLOPT_HEADERFUNCTION,
-        sub { $content_type = $1 if $_[0] =~ /^Content-Type\s*:\s*(.+)\015\012$/; return length( $_[0] ); } );
+        sub {
+            $status_line  = $1 if $_[0] =~ m{^HTTP/1\.1 (.+)\015\012$};
+            $content_type = $1 if $_[0] =~ m{^Content-Type\s*:\s*(.+)\015\012$};
+            return length( $_[0] );
+        }
+    );
     if ($curl->perform() == 0) {
         my $code = $curl->getinfo(CURLINFO_HTTP_CODE);
-        return TSVRPC::Response->new($method, $code, $content_type, $response_content);
+        my $res_encoding = TSVRPC::Util::parse_content_type( $content_type );
+        my $body = defined($res_encoding) ? TSVRPC::Parser::decode_tsvrpc( $response_content, $res_encoding ) : undef;
+        return ($code, $status_line, $body);
     } else {
         die "invalid";
     }
@@ -106,11 +114,11 @@ User-Agent value.
 
 =back
 
-=item $t->call($method, \%args);
+=item my ($code, $status_line, $body) = $t->call($method, \%args);
 
 Call the $method with \%args.
 
-I<Return>: instance of L<TSVRPC::Response>.
+I<Return>: $code: HTTP status code, $status_line: HTTP status line, $body: body hashref.
 
 =back
 
