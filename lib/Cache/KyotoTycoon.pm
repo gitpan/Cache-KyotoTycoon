@@ -2,10 +2,11 @@ package Cache::KyotoTycoon;
 use strict;
 use warnings;
 use 5.00800;
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 use Cache::KyotoTycoon::Cursor;
 use TSVRPC::Client;
 
+# taken from HTTP::Status
 my %STATUS_CODE = (
     100 => 'Continue',
     101 => 'Switching Protocols',
@@ -280,9 +281,9 @@ Cache::KyotoTycoon - KyotoTycoon client library
 
 =head1 SYNOPSIS
 
-    use KyotoTycoon;
+    use Cache::KyotoTycoon;
 
-    my $kt = KyotoTycoon->new(host => '127.0.0.1', port => 1978);
+    my $kt = Cache::KyotoTycoon->new(host => '127.0.0.1', port => 1978);
     $kt->set('foo' => bar');
     $kt->get('foo'); # => 'bar'
 
