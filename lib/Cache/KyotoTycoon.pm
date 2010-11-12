@@ -2,7 +2,7 @@ package Cache::KyotoTycoon;
 use strict;
 use warnings;
 use 5.00800;
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 use Cache::KyotoTycoon::Cursor;
 use TSVRPC::Client;
 
@@ -111,7 +111,21 @@ sub report {
     return $body;
 }
 
-sub play_script { die "play_script: not implemented yet" }
+sub play_script {
+    my ($self, $name, $input) = @_;
+    my %args = (name => $name);
+    while (my ($k, $v) = each %$input) {
+        $args{"_$k"} = $v;
+    }
+    my ($code, $body) = $self->{client}->call('play_script', \%args);
+    die _errmsg($code) if $code ne 200;
+    my %res;
+    while (my ($k, $v) = each %$body) {
+        $k =~ s!^_!!;
+        $res{$k} = $v;
+    }
+    return \%res;
+}
 
 sub status {
     my ($self, ) = @_;
@@ -270,6 +284,17 @@ sub get_bulk {
     return wantarray ? %ret : \%ret;
 }
 
+sub vacuum {
+    my ($self, $step) = @_;
+    my %args = (DB => $self->db);
+    if (defined $step) {
+        $args{step} = $step;
+    }
+    my ($code, $body) = $self->{client}->call('vacuum', \%args);
+    die _errmsg($code) unless $code eq '200';
+    return;
+}
+
 1;
 __END__
 
@@ -353,9 +378,14 @@ Get server report.
 
 I<Return>: server status information in hashref.
 
-=item $kt->play_script
+=item my $output = $kt->play_script($name[, \%input]);
 
-I<Not Implemented Yet>.
+Call a procedure of the script language extension.
+
+I<$name>: the name of the procedure to call.
+I<\%input>: (optional): arbitrary records.
+
+I<Return>: response of the script in hashref.
 
 =item my $info = $kt->status()
 
@@ -458,6 +488,14 @@ I<Return>: not useful value.
 Get multiple values in one time.
 
 I<Return>: records in hashref.
+
+=item $kt->vacuum([$step]);
+
+Scan the database and eliminate regions of expired records.
+
+I<input>: step: (optional): the number of steps. If it is omitted or not more than 0, the whole region is scanned.
+
+I<Return>: not useful.
 
 =back
 

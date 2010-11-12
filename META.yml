@@ -24,11 +24,11 @@ no_index:
     - xt
 requires:
   Exporter: 0
+  Furl: 0.13
   MIME::Base64: 0
   MIME::QuotedPrint: 0
   URI::Escape: 0
-  WWW::Curl::Easy: 0
   perl: 5.8.0
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.07
+version: 0.08
