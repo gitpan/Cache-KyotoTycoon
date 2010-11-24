@@ -2,7 +2,7 @@ package Cache::KyotoTycoon;
 use strict;
 use warnings;
 use 5.00800;
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 use Cache::KyotoTycoon::Cursor;
 use TSVRPC::Client;
 
@@ -360,9 +360,9 @@ I<Default>: 0
 
 Getter/Setter of DB name/id.
 
-=item my $cursor: KyotoTycoon::Cursor = $kt->make_cursor($cursor_number: Int);
+=item my $cursor: Cache::KyotoTycoon::Cursor = $kt->make_cursor($cursor_number: Int);
 
-Create new cursor object. This method returns instance of L<KyotoTycoon::Cursor>.
+Create new cursor object. This method returns instance of L<Cache::KyotoTycoon::Cursor>.
 
 =item my $res = $kt->echo($args)
 
