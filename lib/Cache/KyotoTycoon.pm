@@ -2,69 +2,13 @@ package Cache::KyotoTycoon;
 use strict;
 use warnings;
 use 5.00800;
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 use Cache::KyotoTycoon::Cursor;
 use TSVRPC::Client;
-
-# taken from HTTP::Status
-my %STATUS_CODE = (
-    100 => 'Continue',
-    101 => 'Switching Protocols',
-    102 => 'Processing',                      # RFC 2518 (WebDAV)
-    200 => 'OK',
-    201 => 'Created',
-    202 => 'Accepted',
-    203 => 'Non-Authoritative Information',
-    204 => 'No Content',
-    205 => 'Reset Content',
-    206 => 'Partial Content',
-    207 => 'Multi-Status',                    # RFC 2518 (WebDAV)
-    300 => 'Multiple Choices',
-    301 => 'Moved Permanently',
-    302 => 'Found',
-    303 => 'See Other',
-    304 => 'Not Modified',
-    305 => 'Use Proxy',
-    307 => 'Temporary Redirect',
-    400 => 'Bad Request',
-    401 => 'Unauthorized',
-    402 => 'Payment Required',
-    403 => 'Forbidden',
-    404 => 'Not Found',
-    405 => 'Method Not Allowed',
-    406 => 'Not Acceptable',
-    407 => 'Proxy Authentication Required',
-    408 => 'Request Timeout',
-    409 => 'Conflict',
-    410 => 'Gone',
-    411 => 'Length Required',
-    412 => 'Precondition Failed',
-    413 => 'Request Entity Too Large',
-    414 => 'Request-URI Too Large',
-    415 => 'Unsupported Media Type',
-    416 => 'Request Range Not Satisfiable',
-    417 => 'Expectation Failed',
-    422 => 'Unprocessable Entity',            # RFC 2518 (WebDAV)
-    423 => 'Locked',                          # RFC 2518 (WebDAV)
-    424 => 'Failed Dependency',               # RFC 2518 (WebDAV)
-    425 => 'No code',                         # WebDAV Advanced Collections
-    426 => 'Upgrade Required',                # RFC 2817
-    449 => 'Retry with',                      # unofficial Microsoft
-    500 => 'Internal Server Error',
-    501 => 'Not Implemented',
-    502 => 'Bad Gateway',
-    503 => 'Service Unavailable',
-    504 => 'Gateway Timeout',
-    505 => 'HTTP Version Not Supported',
-    506 => 'Variant Also Negotiates',         # RFC 2295
-    507 => 'Insufficient Storage',            # RFC 2518 (WebDAV)
-    509 => 'Bandwidth Limit Exceeded',        # unofficial
-    510 => 'Not Extended',                    # RFC 2774
-);
+use Carp ();
 
 sub _errmsg {
-    my $code = shift;
-    my $msg = $STATUS_CODE{$code} || 'Unknown';
+    my ($code, $msg) = @_;
     return "Cache::KyotoTycoon unexpected response code: $code $msg";
 }
 
@@ -99,15 +43,15 @@ sub make_cursor {
 
 sub echo {
     my ($self, $args) = @_;
-    my ($code, $body) = $self->{client}->call('echo', $args);
-    die _errmsg($code) if $code ne 200;
+    my ($code, $body, $msg) = $self->{client}->call('echo', $args);
+    Carp::croak _errmsg($code, $msg) if $code ne 200;
     return $body;
 }
 
 sub report {
     my ($self, ) = @_;
-    my ($code, $body) = $self->{client}->call('report');
-    die _errmsg($code) if $code ne 200;
+    my ($code, $body, $msg) = $self->{client}->call('report');
+    Carp::croak _errmsg($code, $msg) if $code ne 200;
     return $body;
 }
 
@@ -117,8 +61,8 @@ sub play_script {
     while (my ($k, $v) = each %$input) {
         $args{"_$k"} = $v;
     }
-    my ($code, $body) = $self->{client}->call('play_script', \%args);
-    die _errmsg($code) if $code ne 200;
+    my ($code, $body, $msg) = $self->{client}->call('play_script', \%args);
+    Carp::croak _errmsg($code, $msg) if $code ne 200;
     my %res;
     while (my ($k, $v) = each %$body) {
         $k =~ s!^_!!;
@@ -129,16 +73,16 @@ sub play_script {
 
 sub status {
     my ($self, ) = @_;
-    my ($code, $body) = $self->{client}->call('status', {DB => $self->db});
-    die _errmsg($code) unless $code eq 200;
+    my ($code, $body, $msg) = $self->{client}->call('status', {DB => $self->db});
+    Carp::croak _errmsg($code, $msg) unless $code eq 200;
     return $body;
 }
 
 sub clear {
     my ($self, ) = @_;
     my %args = (DB => $self->db);
-    my ($code, $body) = $self->{client}->call('clear', \%args);
-    die _errmsg($code) unless $code eq 200;
+    my ($code, $body, $msg) = $self->{client}->call('clear', \%args);
+    Carp::croak _errmsg($code, $msg) unless $code eq 200;
     return;
 }
 
@@ -147,18 +91,18 @@ sub synchronize {
     my %args = (DB => $self->db);
     $args{hard} = $hard if $hard;
     $args{command} = $command if defined $command;
-    my ($code, $body) = $self->{client}->call('synchronize', \%args);
+    my ($code, $body, $msg) = $self->{client}->call('synchronize', \%args);
     return 1 if $code eq 200;
     return 0 if $code eq 450;
-    die _errmsg($code);
+    Carp::croak _errmsg($code, $msg);
 }
 
 sub set {
     my ($self, $key, $value, $xt) = @_;
     my %args = (DB => $self->db, key => $key, value => $value);
     $args{xt} = $xt if defined $xt;
-    my ($code, $body) = $self->{client}->call('set', \%args);
-    die _errmsg($code) unless $code eq 200;
+    my ($code, $body, $msg) = $self->{client}->call('set', \%args);
+    Carp::croak _errmsg($code, $msg) unless $code eq 200;
     return;
 }
 
@@ -166,28 +110,28 @@ sub add {
     my ($self, $key, $value, $xt) = @_;
     my %args = (DB => $self->db, key => $key, value => $value);
     $args{xt} = $xt if defined $xt;
-    my ($code, $body) = $self->{client}->call('add', \%args);
+    my ($code, $body, $msg) = $self->{client}->call('add', \%args);
     return 1 if $code eq '200';
     return 0 if $code eq '450';
-    die _errmsg($code);
+    Carp::croak _errmsg($code, $msg);
 }
 
 sub replace {
     my ($self, $key, $value, $xt) = @_;
     my %args = (DB => $self->db, key => $key, value => $value);
     $args{xt} = $xt if defined $xt;
-    my ($code, $body) = $self->{client}->call('replace', \%args);
+    my ($code, $body, $msg) = $self->{client}->call('replace', \%args);
     return 1 if $code eq '200';
     return 0 if $code eq '450';
-    die _errmsg($code);
+    Carp::croak _errmsg($code, $msg);
 }
 
 sub append {
     my ($self, $key, $value, $xt) = @_;
     my %args = (DB => $self->db, key => $key, value => $value);
     $args{xt} = $xt if defined $xt;
-    my ($code, $body) = $self->{client}->call('append', \%args);
-    die _errmsg($code) unless $code eq '200';
+    my ($code, $body, $msg) = $self->{client}->call('append', \%args);
+    Carp::croak _errmsg($code, $msg) unless $code eq '200';
     return;
 }
 
@@ -195,8 +139,8 @@ sub increment {
     my ($self, $key, $num, $xt) = @_;
     my %args = (DB => $self->db, key => $key, num => $num);
     $args{xt} = $xt if defined $xt;
-    my ($code, $body) = $self->{client}->call('increment', \%args);
-    die _errmsg($code) unless $code eq '200';
+    my ($code, $body, $msg) = $self->{client}->call('increment', \%args);
+    Carp::croak _errmsg($code, $msg) unless $code eq '200';
     return $body->{num};
 }
 
@@ -204,8 +148,8 @@ sub increment_double {
     my ($self, $key, $num, $xt) = @_;
     my %args = (DB => $self->db, key => $key, num => $num);
     $args{xt} = $xt if defined $xt;
-    my ($code, $body) = $self->{client}->call('increment_double', \%args);
-    die _errmsg($code) unless $code eq '200';
+    my ($code, $body, $msg) = $self->{client}->call('increment_double', \%args);
+    Carp::croak _errmsg($code, $msg) unless $code eq '200';
     return $body->{num};
 }
 
@@ -215,31 +159,31 @@ sub cas {
     $args{oval} = $oval if defined $oval;
     $args{nval} = $nval if defined $nval;
     $args{xt} = $xt if defined $xt;
-    my ($code, $body) = $self->{client}->call('cas', \%args);
+    my ($code, $body, $msg) = $self->{client}->call('cas', \%args);
     return 1 if $code eq '200';
     return 0 if $code eq '450';
-    die _errmsg($code);
+    Carp::croak _errmsg($code, $msg);
 }
 
 sub remove {
     my ($self, $key) = @_;
     my %args = (DB => $self->db, key => $key);
-    my ($code, $body) = $self->{client}->call('remove', \%args);
+    my ($code, $body, $msg) = $self->{client}->call('remove', \%args);
     return 1 if $code eq '200';
     return 0 if $code eq '450';
-    die _errmsg($code);
+    Carp::croak _errmsg($code, $msg);
 }
 
 sub get {
     my ($self, $key) = @_;
     my %args = (DB => $self->db, key => $key);
-    my ($code, $body) = $self->{client}->call('get', \%args);
+    my ($code, $body, $msg) = $self->{client}->call('get', \%args);
     if ($code eq 450) {
         return; # no value for key
     } elsif ($code eq 200) {
         return wantarray ? ($body->{value}, $body->{xt}) : $body->{value};
     } else {
-        die _errmsg($code);
+        Carp::croak _errmsg($code, $msg);
     }
 }
 
@@ -250,8 +194,8 @@ sub set_bulk {
         $args{"_$k"} = $v;
     }
     $args{xt} = $xt if defined $xt;
-    my ($code, $body) = $self->{client}->call('set_bulk', \%args);
-    die _errmsg($code) unless $code eq '200';
+    my ($code, $body, $msg) = $self->{client}->call('set_bulk', \%args);
+    Carp::croak _errmsg($code, $msg) unless $code eq '200';
     return $body->{num};
 }
 
@@ -261,8 +205,8 @@ sub remove_bulk {
     for my $k (@$keys) {
         $args{"_$k"} = '';
     }
-    my ($code, $body) = $self->{client}->call('remove_bulk', \%args);
-    die _errmsg($code) unless $code eq '200';
+    my ($code, $body, $msg) = $self->{client}->call('remove_bulk', \%args);
+    Carp::croak _errmsg($code, $msg) unless $code eq '200';
     return $body->{num};
 }
 
@@ -272,8 +216,8 @@ sub get_bulk {
     for my $k (@$keys) {
         $args{"_$k"} = '';
     }
-    my ($code, $body) = $self->{client}->call('get_bulk', \%args);
-    die _errmsg($code) unless $code eq '200';
+    my ($code, $body, $msg) = $self->{client}->call('get_bulk', \%args);
+    Carp::croak _errmsg($code, $msg) unless $code eq '200';
     my %ret;
     while (my ($k, $v) = each %$body) {
         if ($k =~ /^_(.+)$/) {
@@ -290,8 +234,8 @@ sub vacuum {
     if (defined $step) {
         $args{step} = $step;
     }
-    my ($code, $body) = $self->{client}->call('vacuum', \%args);
-    die _errmsg($code) unless $code eq '200';
+    my ($code, $body, $msg) = $self->{client}->call('vacuum', \%args);
+    Carp::croak _errmsg($code, $msg) unless $code eq '200';
     return;
 }
 

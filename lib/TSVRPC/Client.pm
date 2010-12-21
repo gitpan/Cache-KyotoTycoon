@@ -43,10 +43,12 @@ sub call {
         content         => $content,
         special_headers => \%special_headers,
     );
-    my $content_type = $special_headers{'content-type'};
-    my $res_encoding = TSVRPC::Util::parse_content_type( $content_type );
-    my $dedoded_body = defined($res_encoding) ? TSVRPC::Parser::decode_tsvrpc( $body, $res_encoding ) : undef;
-    return ($code, $dedoded_body);
+    my $decoded_body;
+    if (my $content_type = $special_headers{'content-type'}) {
+        my $res_encoding = TSVRPC::Util::parse_content_type( $content_type );
+        $decoded_body = defined($res_encoding) ? TSVRPC::Parser::decode_tsvrpc( $body, $res_encoding ) : undef;
+    }
+    return ($code, $decoded_body, $msg);
 }
 
 1;
@@ -97,7 +99,7 @@ User-Agent value.
 
 =back
 
-=item my ($code, $body) = $t->call($method[, \%args[, $encoding]]);
+=item my ($code, $body, $http_message) = $t->call($method[, \%args[, $encoding]]);
 
 Call the $method with \%args.
 
@@ -107,7 +109,7 @@ I<$encoding>: the encoding for TSVRPC call. Following methods are available.
     Q: Quoted-Printable
     U: URI escape
 
-I<Return>: $code: HTTP status code, $body: body hashref.
+I<Return>: $code: HTTP status code, $body: body hashref, $http_message: HTTP message.
 
 =back
 
