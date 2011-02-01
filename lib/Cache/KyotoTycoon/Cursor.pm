@@ -91,7 +91,7 @@ sub get {
     my %args = (CUR => $self->{cursor});
     $args{step} = '' if defined $step;
     my ($code, $body, $msg) = $self->{client}->call('cur_get', \%args);
-    return ($body->{key}, $body->{value}) if $code eq '200';
+    return ($body->{key}, $body->{value}, $body->{xt}) if $code eq '200';
     return if $code eq '450';
     die Cache::KyotoTycoon::_errmsg($code, $msg);
 }
@@ -127,7 +127,7 @@ Cache::KyotoTycoon::Cursor - Cursor class for KyotoTycoon
 
 =over 4
 
-=item $kt->jump([$key]);
+=item $cursor->jump([$key]);
 
 Jump the cursor.
 
@@ -135,7 +135,7 @@ I<$key>: destination record of the jump. The first key if missing.
 
 I<Return>: not useful
 
-=item $kt->jump_back([$key]);
+=item $cursor->jump_back([$key]);
 
 Jump back the cursor. This method is only available on TreeDB.
 
@@ -145,19 +145,19 @@ I<Return>: 1 if succeeded, 0 if the record is not exists.
 
 I<Exception>: die if /rpc/jump_back is not implemented.
 
-=item $kt->step();
+=item $cursor->step();
 
 Move cursor to next record.
 
 I<Return>: 1 if succeeded, 0 if the next record is not exists.
 
-=item $kt->step_back()
+=item $cursor->step_back()
 
 Step the cursor to the previous record.
 
 I<Return>: 1 on success, or 0 on failure.
 
-=item $kt->set_value($xt, $step);
+=item $cursor->set_value($xt, $step);
 
 Set the value of the current record.
 
@@ -169,13 +169,13 @@ I<$step>    true to move the cursor to the next record, or false for no move.
 
 I<Return>: 1 on success, or 0 on failure.
 
-=item $kt->remove();
+=item $cursor->remove();
 
 Remove the current record. 
 
 I<Return>: 1 on success, or 0 on failure.
 
-=item my $key = $kt->get_key([$step])
+=item my $key = $cursor->get_key([$step])
 
 Get the key of the current record. 
 
@@ -183,7 +183,7 @@ I<$step>: true to move the cursor to the next record, or false for no move.
 
 I<Return>: key on success, or undef on failure.
 
-=item my $value = $kt->get_value([$step]);
+=item my $value = $cursor->get_value([$step]);
 
 Get the value of the current record. 
 
@@ -191,15 +191,15 @@ I<$step>: true to move the cursor to the next record, or false for no move.
 
 I<Return>: value on success, or undef on failure.
 
-=item my ($key, $value) = $kt->get([$step]);
+=item my ($key, $value, $xt) = $cursor->get([$step]);
 
 Get a pair of the key and the value of the current record. 
 
 I<$step>: true to move the cursor to the next record, or false for no move.
 
-I<Return>: pair of key and value on success, or empty list on failure.
+I<Return>: pair of key, value and expiration time on success, or empty list on failure.
 
-=item $kt->delete();
+=item $cursor->delete();
 
 Delete the cursor immidiately.
 

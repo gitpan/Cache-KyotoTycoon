@@ -2,7 +2,7 @@ package Cache::KyotoTycoon;
 use strict;
 use warnings;
 use 5.00800;
-our $VERSION = '0.11';
+our $VERSION = '0.12';
 use Cache::KyotoTycoon::Cursor;
 use TSVRPC::Client;
 use Carp ();
@@ -400,6 +400,9 @@ I<Return>: value after increment.
 =item my $ret = $kt->cas($key, $oval, $nval, $xt);
 
 compare and swap.
+
+I<$oval>: old value
+I<$nval>: new value
 
 I<Return>: 1 if succeeded, 0 if failed.
 
