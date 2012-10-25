@@ -1,8 +1,8 @@
 package Cache::KyotoTycoon;
 use strict;
 use warnings;
-use 5.00800;
-our $VERSION = '0.12';
+use 5.008001;
+our $VERSION = '0.13';
 use Cache::KyotoTycoon::Cursor;
 use TSVRPC::Client;
 use Carp ();
@@ -448,7 +448,7 @@ I<Return>: not useful.
 
 =head1 AUTHOR
 
-Tokuhiro Matsuno E<lt>tokuhirom AAJKLFJEF GMAIL COME<gt>
+Tokuhiro Matsuno E<lt>tokuhirom AAJKLFJEF@ GMAIL COME<gt>
 
 =head1 SEE ALSO
 

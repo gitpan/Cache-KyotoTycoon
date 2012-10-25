@@ -1,0 +1,77 @@
+{
+   "abstract" : "KyotoTycoon client library",
+   "author" : [
+      "Tokuhiro Matsuno E<lt>tokuhirom AAJKLFJEF@ GMAIL COME<gt>"
+   ],
+   "dynamic_config" : 0,
+   "generated_by" : "Module::Build version 0.4003, CPAN::Meta::Converter version 2.120921",
+   "license" : [
+      "perl_5"
+   ],
+   "meta-spec" : {
+      "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+      "version" : "2"
+   },
+   "name" : "Cache-KyotoTycoon",
+   "no_index" : {
+      "directory" : [
+         "inc",
+         "t",
+         "xt"
+      ]
+   },
+   "prereqs" : {
+      "build" : {
+         "requires" : {
+            "File::Which" : "0",
+            "Test::More" : "0.98",
+            "Test::Requires" : "0",
+            "Test::TCP" : "1.17"
+         }
+      },
+      "configure" : {
+         "requires" : {
+            "Module::Build" : "0.38"
+         }
+      },
+      "runtime" : {
+         "requires" : {
+            "Exporter" : "0",
+            "Furl" : "1.00",
+            "MIME::Base64" : "0",
+            "MIME::QuotedPrint" : "0",
+            "URI::Escape" : "0",
+            "perl" : "5.008001"
+         }
+      }
+   },
+   "provides" : {
+      "Cache::KyotoTycoon" : {
+         "file" : "lib/Cache/KyotoTycoon.pm",
+         "version" : "0.13"
+      },
+      "Cache::KyotoTycoon::Cursor" : {
+         "file" : "lib/Cache/KyotoTycoon/Cursor.pm",
+         "version" : 0
+      },
+      "TSVRPC::Client" : {
+         "file" : "lib/TSVRPC/Client.pm",
+         "version" : "0.01"
+      },
+      "TSVRPC::Parser" : {
+         "file" : "lib/TSVRPC/Parser.pm",
+         "version" : 0
+      },
+      "TSVRPC::Util" : {
+         "file" : "lib/TSVRPC/Util.pm",
+         "version" : 0
+      }
+   },
+   "release_status" : "stable",
+   "resources" : {
+      "license" : [
+         "http://dev.perl.org/licenses/"
+      ]
+   },
+   "version" : "0.13"
+}
