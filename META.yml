@@ -24,7 +24,7 @@ no_index:
 provides:
   Cache::KyotoTycoon:
     file: lib/Cache/KyotoTycoon.pm
-    version: 0.13
+    version: 0.14
   Cache::KyotoTycoon::Cursor:
     file: lib/Cache/KyotoTycoon/Cursor.pm
     version: 0
@@ -46,4 +46,4 @@ requires:
   perl: 5.008001
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.13
+version: 0.14

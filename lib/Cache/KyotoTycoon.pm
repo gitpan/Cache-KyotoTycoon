@@ -2,7 +2,7 @@ package Cache::KyotoTycoon;
 use strict;
 use warnings;
 use 5.008001;
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 use Cache::KyotoTycoon::Cursor;
 use TSVRPC::Client;
 use Carp ();
@@ -18,13 +18,14 @@ sub new {
 
     my $host = $args{host} || '127.0.0.1';
     my $port = $args{port} || 1978;
+    my $db   = $args{db}   || 0;
     my $base = "http://${host}:${port}/rpc/";
     my $client = TSVRPC::Client->new(
         timeout    => exists( $args{timeout} ) ? $args{timeout} : 1,
         base       => $base,
     );
     my $self = bless {
-        db        => 0,
+        db        => $db,
         client    => $client,
     }, $class;
     return $self;
