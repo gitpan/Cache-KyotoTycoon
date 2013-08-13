@@ -2,7 +2,7 @@ package Cache::KyotoTycoon;
 use strict;
 use warnings;
 use 5.008001;
-our $VERSION = '0.14';
+our $VERSION = '0.15';
 use Cache::KyotoTycoon::Cursor;
 use TSVRPC::Client;
 use Carp ();
@@ -240,6 +240,57 @@ sub vacuum {
     return;
 }
 
+sub match_prefix {
+    my ($self, $prefix, $max) = @_;
+    my %args = (DB => $self->db, prefix => $prefix);
+    $args{max} = $max if defined $max;
+    my ($code, $body, $msg) = $self->{client}->call('match_prefix', \%args);
+    Carp::croak _errmsg($code, $msg) unless $code eq '200';
+    my %ret;
+    while (my ($k, $v) = each %$body) {
+        if ($k =~ /^_(.+)$/) {
+            $ret{$1} = $v;
+        }
+    }
+    die "fatal error" unless keys(%ret) == $body->{num};
+    return wantarray ? %ret : \%ret;
+}
+
+sub match_regex {
+    my ($self, $regex, $max) = @_;
+    my %args = (DB => $self->db, regex => $regex);
+    $args{max} = $max if defined $max;
+    my ($code, $body, $msg) = $self->{client}->call('match_regex', \%args);
+    Carp::croak _errmsg($code, $msg) unless $code eq '200';
+    my %ret;
+    while (my ($k, $v) = each %$body) {
+        if ($k =~ /^_(.+)$/) {
+            $ret{$1} = $v;
+        }
+    }
+    die "fatal error" unless keys(%ret) == $body->{num};
+    return wantarray ? %ret : \%ret;
+}
+
+sub match_similar {
+    my ($self, $origin, $range, $utf8, $max) = @_;
+    my %args = (DB => $self->db, origin => $origin);
+    $args{range} = $max if defined $range;
+    $args{utf}   = 1    if $utf8;
+    $args{max}   = $max if defined $max;
+    my ($code, $body, $msg) = $self->{client}->call('match_regex', \%args);
+    Carp::croak _errmsg($code, $msg) unless $code eq '200';
+    my %ret;
+
+    while (my ($k, $v) = each %$body) {
+        if ($k =~ /^_(.+)$/) {
+            $ret{$1} = $v;
+        }
+    }
+    die "fatal error" unless keys(%ret) == $body->{num};
+    return wantarray ? %ret : \%ret;
+}
+
 1;
 __END__
 
@@ -271,25 +322,25 @@ This module throws exception if got B<Server Error>.
 
 =over 4
 
-=item timeout
+=item C<< timeout >>
 
 Timeout value for each request in seconds.
 
 I<Default>: 1 second
 
-=item host
+=item C<< host >>
 
 Host name of server machine.
 
 I<Default>: '127.0.0.1'
 
-=item port
+=item C<< port >>
 
 Port number of server process. 
 
 I<Default>: 1978 
 
-=item db
+=item C<< db >>
 
 DB name or id.
 
@@ -301,15 +352,15 @@ I<Default>: 0
 
 =over 4
 
-=item $kt->db()
+=item C<< $kt->db() >>
 
 Getter/Setter of DB name/id.
 
-=item my $cursor: Cache::KyotoTycoon::Cursor = $kt->make_cursor($cursor_number: Int);
+=item C<< my $cursor: Cache::KyotoTycoon::Cursor = $kt->make_cursor($cursor_number: Int); >>
 
 Create new cursor object. This method returns instance of L<Cache::KyotoTycoon::Cursor>.
 
-=item my $res = $kt->echo($args)
+=item C<< my $res = $kt->echo($args) >>
 
 The server returns $args. This method is useful for testing server.
 
@@ -317,13 +368,13 @@ $args is hashref.
 
 I<Return>: the copy of $args.
 
-=item $kt->report()
+=item C<< $kt->report() >>
 
 Get server report.
 
 I<Return>: server status information in hashref.
 
-=item my $output = $kt->play_script($name[, \%input]);
+=item C<< my $output = $kt->play_script($name[, \%input]); >>
 
 Call a procedure of the script language extension.
 
@@ -332,19 +383,19 @@ I<\%input>: (optional): arbitrary records.
 
 I<Return>: response of the script in hashref.
 
-=item my $info = $kt->status()
+=item C<< my $info = $kt->status() >>
 
 Get database status information.
 
 I<Return>: database status information in hashref.
 
-=item $kt->clear()
+=item C<< $kt->clear() >>
 
 Remove all elements for the storage.
 
 I<Return>: Not a useful value.
 
-=item $kt->synchronize($hard:Bool, $command);
+=item C<< $kt->synchronize($hard:Bool, $command); >>
 
 Synchronize database with file system.
 
@@ -354,7 +405,7 @@ I<$command>: call $command in synchronization state.
 
 I<Return>: 1 if succeeded, 0 if $command returns false.
 
-=item $kt->set($key, $value, $xt);
+=item C<< $kt->set($key, $value, $xt); >>
 
 Store I<$value> to I<$key>.
 
@@ -362,7 +413,7 @@ I<$xt>: expiration time. If $xt>0, expiration time in seconds from now. If $xt<0
 
 I<Return>: not a useful value.
 
-=item my $ret = $kt->add($key, $value, $xt);
+=item C<< my $ret = $kt->add($key, $value, $xt); >>
 
 Store record. This method is not store if the I<$key> is already in the database.
 
@@ -370,7 +421,7 @@ I<$xt>: expiration time. If $xt>0, expiration time in seconds from now. If $xt<0
 
 I<Return>: 1 if succeeded. 0 if $key is already in the db.
 
-=item my $ret = $kt->replace($key, $value, $xt);
+=item C<< my $ret = $kt->replace($key, $value, $xt); >>
 
 Store the record, ignore if the record is not exists in the database.
 
@@ -378,7 +429,7 @@ I<$xt>: expiration time. If $xt>0, expiration time in seconds from now. If $xt<0
 
 I<Return>: 1 if succeeded. 0 if $key is not exists in the database.
 
-=item my $ret = $kt->append($key, $value, $xt);
+=item C<< my $ret = $kt->append($key, $value, $xt); >>
 
 Store the record, append the $value to existent record if already exists entry.
 
@@ -386,19 +437,19 @@ I<$xt>: expiration time. If $xt>0, expiration time in seconds from now. If $xt<0
 
 I<Return>: not useful value. 
 
-=item my $ret = $kt->increment($key, $num, $xt);
+=item C<< my $ret = $kt->increment($key, $num, $xt); >>
 
 I<$num>: incremental
 
 I<Return>: value after increment. 
 
-=item my $ret = $kt->increment_double($key, $num, $xt);
+=item C<< my $ret = $kt->increment_double($key, $num, $xt); >>
 
 I<$num>: incremental
 
 I<Return>: value after increment. 
 
-=item my $ret = $kt->cas($key, $oval, $nval, $xt);
+=item C<< my $ret = $kt->cas($key, $oval, $nval, $xt); >>
 
 compare and swap.
 
@@ -407,43 +458,61 @@ I<$nval>: new value
 
 I<Return>: 1 if succeeded, 0 if failed.
 
-=item $kt->remove($key);
+=item C<< $kt->remove($key); >>
 
 Remove I<$key> from database.
 
 I<Return> 1 if removed, 0 if record does not exists.
 
-=item my $val = $kt->get($key);
+=item C<< my $val = $kt->get($key); >>
 
 Get I<$key> from database.
 
 I<Return>: the value from database in scalar context. ($value, $xt) in list context. I<undef> or empty list  if not exists in database.
 
-=item $kt->set_bulk(\%values);
+=item C<< $kt->set_bulk(\%values); >>
 
 Store multiple values in one time.
 
 I<Return>: not useful value.
 
-=item $kt->remove_bulk(\@keys);
+=item C<< $kt->remove_bulk(\@keys); >>
 
 Remove multiple keys in one time.
 
 I<Return>: not useful value.
 
-=item my $hashref = $kt->get_bulk(\@keys);
+=item C<< my $hashref = $kt->get_bulk(\@keys); >>
 
 Get multiple values in one time.
 
 I<Return>: records in hashref.
 
-=item $kt->vacuum([$step]);
+=item C<< $kt->vacuum([$step]); >>
 
 Scan the database and eliminate regions of expired records.
 
 I<input>: step: (optional): the number of steps. If it is omitted or not more than 0, the whole region is scanned.
 
 I<Return>: not useful.
+
+=item C<< my $hashref = $kt->match_prefix($prefix, $max); >>
+
+Get list of matching keys.
+
+I<Return>: records in hashref.
+
+=item C<< my $hashref = $kt->match_regex($regex, $max); >>
+
+Get list of matching keys.
+
+I<Return>: records in hashref.
+
+=item C<< my $hashref = $kt->match_similar($origin, $range, $utf8, $max); >>
+
+Get list of matching keys.
+
+I<Return>: records in hashref.
 
 =back
 
@@ -455,9 +524,9 @@ Tokuhiro Matsuno E<lt>tokuhirom AAJKLFJEF@ GMAIL COME<gt>
 
 =over 4
 
-=item L<KyotoTycoon|http://fallabs.com/kyototycoon/>
+=item C<< L<KyotoTycoon|http://fallabs.com/kyototycoon/> >>
 
-=item http://fallabs.com/mikio/tech/promenade.cgi?id=99
+=item C<< http://fallabs.com/mikio/tech/promenade.cgi?id=99 >>
 
 =back
 

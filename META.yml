@@ -1,16 +1,18 @@
 ---
 abstract: 'KyotoTycoon client library'
 author:
-  - 'Tokuhiro Matsuno E<lt>tokuhirom AAJKLFJEF@ GMAIL COME<gt>'
+  - 'Tokuhiro Matsuno <tokuhirom AAJKLFJEF@ GMAIL COM>'
 build_requires:
   File::Which: 0
   Test::More: 0.98
   Test::Requires: 0
   Test::TCP: 1.17
 configure_requires:
+  CPAN::Meta: 0
+  CPAN::Meta::Prereqs: 0
   Module::Build: 0.38
 dynamic_config: 0
-generated_by: 'Module::Build version 0.4003, CPAN::Meta::Converter version 2.120921'
+generated_by: 'Minilla/v0.5.6, CPAN::Meta::Converter version 2.131560'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -18,32 +20,39 @@ meta-spec:
 name: Cache-KyotoTycoon
 no_index:
   directory:
-    - inc
     - t
     - xt
+    - inc
+    - share
+    - eg
+    - examples
+    - author
 provides:
   Cache::KyotoTycoon:
     file: lib/Cache/KyotoTycoon.pm
-    version: 0.14
+    version: 0.15
   Cache::KyotoTycoon::Cursor:
     file: lib/Cache/KyotoTycoon/Cursor.pm
-    version: 0
   TSVRPC::Client:
     file: lib/TSVRPC/Client.pm
-    version: 0.01
+    version: 0.15
   TSVRPC::Parser:
     file: lib/TSVRPC/Parser.pm
-    version: 0
   TSVRPC::Util:
     file: lib/TSVRPC/Util.pm
-    version: 0
 requires:
   Exporter: 0
   Furl: 1.00
+  Furl::HTTP: 0
   MIME::Base64: 0
   MIME::QuotedPrint: 0
   URI::Escape: 0
   perl: 5.008001
 resources:
-  license: http://dev.perl.org/licenses/
-version: 0.14
+  bugtracker: https://github.com/tokuhirom/Cache-KyotoTycoon/issues
+  homepage: https://github.com/tokuhirom/Cache-KyotoTycoon
+  repository: git://github.com/tokuhirom/Cache-KyotoTycoon.git
+version: 0.15
+x_contributors:
+  - 'Tobias Kirschstein <lev@ideegeo.com>'
+  - 'tokuhirom <tokuhirom@gmail.com>'
